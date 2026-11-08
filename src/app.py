@@ -20,11 +20,8 @@ def executar_cli() -> None:
             print("Sistema > Entrada vazia. Digite uma mensagem.\n")
             continue
 
-        try:
-            resposta = enviar_prompt_llm(entrada)
-            print(f"IA > {resposta}\n")
-        except NotImplementedError:
-            print("Sistema > Cliente do LLM ainda não implementado.\n")
+        resposta = enviar_prompt_llm(entrada)
+        print(f"IA > {resposta}\n")
 
 
 if __name__ == "__main__":
