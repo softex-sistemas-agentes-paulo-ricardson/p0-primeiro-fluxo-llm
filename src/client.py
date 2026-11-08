@@ -17,12 +17,12 @@ def carregar_configuracao() -> dict:
 
     return {
         "base_url": os.getenv("LLM_API_BASE_URL"),
-        "caminho": os.getenv("LLM_API_PATH", "/chat/completions"),
+        "caminho": os.getenv("LLM_API_PATH") or "/chat/completions",
         "api_key": os.getenv("LLM_API_KEY"),
         "modelo": os.getenv("LLM_MODEL_NAME"),
-        "temperatura": float(os.getenv("LLM_TEMPERATURE", "0.7")),
-        "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "1000")),
-        "timeout": float(os.getenv("LLM_TIMEOUT", "30")),
+        "temperatura": float(os.getenv("LLM_TEMPERATURE") or "0.7"),
+        "max_tokens": int(os.getenv("LLM_MAX_TOKENS") or "1000"),
+        "timeout": float(os.getenv("LLM_TIMEOUT") or "30"),
     }
 
 def enviar_prompt_llm(prompt: str) -> str:
