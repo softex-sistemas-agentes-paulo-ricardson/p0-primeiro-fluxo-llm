@@ -1,10 +1,26 @@
 """Testes unitários offline do cliente HTTP."""
 
-import pytest
-
 from src.client import enviar_prompt_llm
 
 
-def test_cliente_ainda_nao_implementado():
-    with pytest.raises(NotImplementedError):
-        enviar_prompt_llm("Olá, IA!")
+def test_enviar_prompt_llm_sucesso(monkeypatch, requests_mock):
+    monkeypatch.setattr(
+        "src.client.carregar_configuracao",
+        lambda: {
+            "base_url": "https://api.exemplo.test/v1",
+            "api_key": "chave-de-teste",
+            "modelo": "modelo-teste",
+            "temperatura": 0.7,
+            "max_tokens": 100,
+        },
+    )
+    requests_mock.post(
+        "https://api.exemplo.test/v1/chat/completions",
+        json={"choices": [{"message": {"role": "assistant", "content": "Resposta formal."}}]},
+        status_code=200,
+    )
+
+    resultado = enviar_prompt_llm("vc pode me mandar o relatório?")
+
+    assert resultado == "Resposta formal."
+    assert requests_mock.call_count == 1
