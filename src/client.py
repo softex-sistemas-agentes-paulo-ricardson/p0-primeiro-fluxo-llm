@@ -30,7 +30,9 @@ def enviar_prompt_llm(prompt: str) -> str:
     config = carregar_configuracao()
 
     url = config["base_url"].rstrip("/") + "/" + config["caminho"].lstrip("/")
-    cabecalhos = {"Authorization": f"Bearer {config['api_key']}"}
+    cabecalhos = {}
+    if config["api_key"]:
+        cabecalhos["Authorization"] = f"Bearer {config['api_key']}"
     corpo = {
         "model": config["modelo"],
         "messages": [
