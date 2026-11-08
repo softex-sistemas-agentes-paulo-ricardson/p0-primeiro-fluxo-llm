@@ -3,6 +3,8 @@
 import os
 from dotenv import find_dotenv, load_dotenv
 
+import requests
+
 def carregar_configuracao() -> dict:
     """Lê as variáveis do .env e devolve a configuração do LLM"""
     load_dotenv(find_dotenv(usecwd=True), override=True)
@@ -12,13 +14,25 @@ def carregar_configuracao() -> dict:
         "api_key": os.getenv("LLM_API_KEY"),
         "modelo": os.getenv("LLM_MODEL_NAME"),
         "temperatura": float(os.getenv("LLM_TEMPERATURE", "0.7")),
-        "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "1000"))	
+        "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "1000"))
     }
 
 def enviar_prompt_llm(prompt: str) -> str:
-    """Envia o prompt ao LLM e devolve o texto da resposta.
+    """Envia o prompt ao LLM e devolve o texto da resposta."""
 
-    Esqueleto inicial: a chamada real à API REST será implementada
-    no nível Básico.
-    """
-    raise NotImplementedError("Chamada ao LLM ainda não implementada.")
+    config = carregar_configuracao()
+
+    url = config["base_url"].rstrip("/") + "/chat/completions"
+    cabecalhos = {"Authorization": f"Bearer {config['api_key']}"}
+    corpo = {
+        "model": config["modelo"],
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": config["temperatura"],
+        "max_tokens": config["max_tokens"],
+    }
+
+    resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=30)
+    resposta.raise_for_status()
+
+    dados = resposta.json()
+    return dados["choices"][0]["message"]["content"]
