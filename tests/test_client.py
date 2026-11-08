@@ -24,3 +24,7 @@ def test_enviar_prompt_llm_sucesso(monkeypatch, requests_mock):
 
     assert resultado == "Resposta formal."
     assert requests_mock.call_count == 1
+
+    corpo = requests_mock.last_request.json()
+    assert corpo["messages"][0]["role"] == "system"
+    assert corpo["messages"][1] == {"role": "user", "content": "vc pode me mandar o relatório?"}
