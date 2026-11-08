@@ -17,6 +17,7 @@ def carregar_configuracao() -> dict:
 
     return {
         "base_url": os.getenv("LLM_API_BASE_URL"),
+        "caminho": os.getenv("LLM_API_PATH", "/chat/completions"),
         "api_key": os.getenv("LLM_API_KEY"),
         "modelo": os.getenv("LLM_MODEL_NAME"),
         "temperatura": float(os.getenv("LLM_TEMPERATURE", "0.7")),
@@ -28,7 +29,7 @@ def enviar_prompt_llm(prompt: str) -> str:
 
     config = carregar_configuracao()
 
-    url = config["base_url"].rstrip("/") + "/chat/completions"
+    url = config["base_url"].rstrip("/") + "/" + config["caminho"].lstrip("/")
     cabecalhos = {"Authorization": f"Bearer {config['api_key']}"}
     corpo = {
         "model": config["modelo"],
