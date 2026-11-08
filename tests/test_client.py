@@ -13,6 +13,7 @@ def test_enviar_prompt_llm_sucesso(monkeypatch, requests_mock):
             "modelo": "modelo-teste",
             "temperatura": 0.7,
             "max_tokens": 100,
+            "timeout": 30,
         },
     )
     requests_mock.post(
@@ -30,6 +31,7 @@ def test_enviar_prompt_llm_sucesso(monkeypatch, requests_mock):
     assert corpo["messages"][0]["role"] == "system"
     assert corpo["messages"][1] == {"role": "user", "content": "vc pode me mandar o relatório?"}
     assert requests_mock.last_request.headers["Authorization"] == "Bearer chave-de-teste"
+    assert requests_mock.last_request.timeout == 30
 
 def test_sem_chave_nao_envia_authorization(monkeypatch, requests_mock):
     monkeypatch.setattr(
@@ -41,6 +43,7 @@ def test_sem_chave_nao_envia_authorization(monkeypatch, requests_mock):
             "modelo": "modelo-teste",
             "temperatura": 0.7,
             "max_tokens": 100,
+            "timeout": 30,
         },
     )
     requests_mock.post(
