@@ -21,7 +21,8 @@ def carregar_configuracao() -> dict:
         "api_key": os.getenv("LLM_API_KEY"),
         "modelo": os.getenv("LLM_MODEL_NAME"),
         "temperatura": float(os.getenv("LLM_TEMPERATURE", "0.7")),
-        "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "1000"))
+        "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "1000")),
+        "timeout": float(os.getenv("LLM_TIMEOUT", "30")),
     }
 
 def enviar_prompt_llm(prompt: str) -> str:
@@ -43,7 +44,7 @@ def enviar_prompt_llm(prompt: str) -> str:
         "max_tokens": config["max_tokens"],
     }
 
-    resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=30)
+    resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
     resposta.raise_for_status()
 
     dados = resposta.json()
