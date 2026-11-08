@@ -8,6 +8,7 @@ def test_enviar_prompt_llm_sucesso(monkeypatch, requests_mock):
         "src.client.carregar_configuracao",
         lambda: {
             "base_url": "https://api.exemplo.test/v1",
+            "caminho": "/chat/completions",
             "api_key": "chave-de-teste",
             "modelo": "modelo-teste",
             "temperatura": 0.7,
