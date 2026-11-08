@@ -5,6 +5,12 @@ from dotenv import find_dotenv, load_dotenv
 
 import requests
 
+INSTRUCAO_SISTEMA = (
+    "Você reescreve mensagens em tom formal e profissional, em português do Brasil. "
+    "Não acrescente nem remova informações e preserve o sentido original. "
+    "Responda apenas com o texto reescrito, sem comentários, aspas ou explicações."
+)
+
 def carregar_configuracao() -> dict:
     """Lê as variáveis do .env e devolve a configuração do LLM"""
     load_dotenv(find_dotenv(usecwd=True), override=True)
@@ -26,7 +32,10 @@ def enviar_prompt_llm(prompt: str) -> str:
     cabecalhos = {"Authorization": f"Bearer {config['api_key']}"}
     corpo = {
         "model": config["modelo"],
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [
+            {"role": "system", "content": INSTRUCAO_SISTEMA},
+            {"role": "user", "content": prompt},
+        ],
         "temperature": config["temperatura"],
         "max_tokens": config["max_tokens"],
     }
