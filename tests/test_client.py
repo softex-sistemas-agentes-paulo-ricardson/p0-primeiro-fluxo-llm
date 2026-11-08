@@ -2,6 +2,8 @@
 
 from src.client import enviar_prompt_llm
 
+from src.client import carregar_configuracao, enviar_prompt_llm
+
 
 def test_enviar_prompt_llm_sucesso(monkeypatch, requests_mock):
     monkeypatch.setattr(
@@ -54,3 +56,17 @@ def test_sem_chave_nao_envia_authorization(monkeypatch, requests_mock):
     enviar_prompt_llm("teste")
 
     assert "Authorization" not in requests_mock.last_request.headers
+
+def test_variaveis_vazias_usam_padrao(monkeypatch):
+    monkeypatch.setattr("src.client.load_dotenv", lambda *args, **kwargs: None)
+    monkeypatch.setenv("LLM_API_PATH", "")
+    monkeypatch.setenv("LLM_TEMPERATURE", "")
+    monkeypatch.setenv("LLM_MAX_TOKENS", "")
+    monkeypatch.setenv("LLM_TIMEOUT", "")
+
+    config = carregar_configuracao()
+
+    assert config["caminho"] == "/chat/completions"
+    assert config["temperatura"] == 0.7
+    assert config["max_tokens"] == 1000
+    assert config["timeout"] == 30.0
