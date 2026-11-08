@@ -61,6 +61,8 @@ cd p0-primeiro-fluxo-llm
 
 ### 2. Criar e Ativar o Ambiente Virtual (`.venv`)
 
+> **Execute apenas o bloco do seu sistema operacional.** Os comandos do Windows (`python`, `Set-ExecutionPolicy`, `.venv\Scripts\...`) não funcionam no Linux/macOS, e os do Linux/macOS (`python3`, `source`) não funcionam no PowerShell.
+
 - **Windows (PowerShell):**
 
   ```powershell
@@ -80,6 +82,13 @@ cd p0-primeiro-fluxo-llm
   ```bash
   python3 -m venv .venv
   source .venv/bin/activate
+  ```
+
+  No Ubuntu/Debian, se aparecer "ensurepip is not available" ou "python3-venv is not installed", instale o módulo e repita os comandos:
+
+  ```bash
+  sudo apt update
+  sudo apt install python3-venv
   ```
 
 Verifique se o terminal exibe o prefixo `(.venv)` no início da linha de comando para confirmar que a ativação foi concluída com sucesso.
