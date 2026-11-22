@@ -11,15 +11,21 @@ INSTRUCAO_SISTEMA = (
     "Responda apenas com o texto reescrito, sem comentários, aspas ou explicações."
 )
 
+def ler_variavel(nome, padrao=None):
+    """Le uma variável de ambiente; vazia ou só com espaços conta como ausente"""
+
+    valor = os.getenv(nome, "").strip()
+    return valor or padrao
+
 def carregar_configuracao() -> dict:
     """Lê as variáveis do .env e devolve a configuração do LLM"""
     load_dotenv(find_dotenv(usecwd=True), override=True)
 
     return {
-        "base_url": os.getenv("LLM_API_BASE_URL"),
-        "caminho": os.getenv("LLM_API_PATH") or "/chat/completions",
-        "api_key": os.getenv("LLM_API_KEY"),
-        "modelo": os.getenv("LLM_MODEL_NAME"),
+        "base_url": ler_variavel("LLM_API_BASE_URL"),
+        "caminho": ler_variavel("LLM_API_PATH", "/chat/completions"),
+        "api_key": ler_variavel("LLM_API_KEY"),
+        "modelo": ler_variavel("LLM_MODEL_NAME"),
         "temperatura": float(os.getenv("LLM_TEMPERATURE") or "0.7"),
         "max_tokens": int(os.getenv("LLM_MAX_TOKENS") or "1000"),
         "timeout": float(os.getenv("LLM_TIMEOUT") or "30"),
