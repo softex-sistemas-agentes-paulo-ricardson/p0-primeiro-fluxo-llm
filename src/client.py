@@ -11,9 +11,6 @@ INSTRUCAO_SISTEMA = (
     "Responda apenas com o texto reescrito, sem comentários, aspas ou explicações."
 )
 
-class ErroConfiguracao(Exception):
-    """A configuração do LLM está ausente ou é inválida"""
-
 def ler_variavel(nome, padrao=None):
     """Le uma variável de ambiente; vazia ou só com espaços conta como ausente"""
 
@@ -36,11 +33,31 @@ def ler_numero(nome, tipo, padrao):
             f"{nome} deve ser um número ({tipo.__name__}), mas o valor é {texto!r}."
         ) from None
 
+def validar_configuracoes(config: dict) -> None:
+    """Levanta ErroConfiguracao se um valor obrigatório faltar ou for inválido."""
+    if not config["base_url"]:
+        raise ErroConfiguracao("LLM_API_BASE_URL não foi definida no .env.")
+    if not config["base_url"].startswith(("http://", "https://")):
+        raise ErroConfiguracao("LLM_API_BASE_URL deve começar com http:// ou https://.")
+    if not config["modelo"]:
+        raise ErroConfiguracao("LLM_MODEL_NAME não foi definido no .env.")
+    if "#" in config["caminho"]:
+        raise ErroConfiguracao(
+            "LLM_API_PATH contém '#'. Para comentar uma linha do .env, "
+            "coloque o # no começo da linha."
+        )
+    if config["temperatura"] < 0:
+        raise ErroConfiguracao("LLM_TEMPERATURE não pode ser negativa.")
+    if config["max_tokens"] <= 0:
+        raise ErroConfiguracao("LLM_MAX_TOKENS deve ser maior que zero.")
+    if config["timeout"] <= 0:
+        raise ErroConfiguracao("LLM_TIMEOUT deve ser maior que zero.")
+
 def carregar_configuracao() -> dict:
     """Lê as variáveis do .env e devolve a configuração do LLM"""
     load_dotenv(find_dotenv(usecwd=True), override=True)
 
-    return {
+    config = {
         "base_url": ler_variavel("LLM_API_BASE_URL"),
         "caminho": ler_variavel("LLM_API_PATH", "/chat/completions"),
         "api_key": ler_variavel("LLM_API_KEY"),
@@ -49,6 +66,8 @@ def carregar_configuracao() -> dict:
         "max_tokens": ler_numero("LLM_MAX_TOKENS", int, 1000),
         "timeout": ler_numero("LLM_TIMEOUT", float, 30.0),
     }
+    validar_configuracoes(config)
+    return config
 
 def enviar_prompt_llm(prompt: str) -> str:
     """Envia o prompt ao LLM e devolve o texto da resposta."""
