@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 help/
 /.vscode
+.env.bak
+\.idea
+/.idea
