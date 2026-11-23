@@ -35,7 +35,8 @@ p0-primeiro-fluxo-llm/
 │   ├── app.py           # Interface de linha de comando (captura a entrada e exibe a resposta)
 │   └── client.py        # Cliente HTTP isolado (configuração e chamada à API do LLM)
 ├── tests/
-│   └── test_client.py   # Testes offline, com mock da API (sem chamada real)
+│   ├── test_client.py        # Testes offline do cliente HTTP, com mock da API
+│   └── test_configuracao.py  # Testes offline de leitura e validação da configuração
 ├── .env.example         # Modelo de configuração, sem credenciais reais
 ├── .gitignore           # Arquivos e pastas fora do controle de versão
 ├── requirements.txt     # Dependências do projeto
@@ -135,6 +136,15 @@ O programa usa qualquer API compatível com OpenAI (`POST /chat/completions`, co
 | `LLM_MAX_TOKENS` | Limite de tokens da resposta (opcional; padrão `1000`) |
 | `LLM_TIMEOUT` | Tempo máximo de espera, em segundos (opcional; padrão `30`) |
 
+As variáveis marcadas como opcionais podem ficar vazias ou ser removidas: nesse caso, o programa usa o valor padrão.
+
+Para comentar uma linha do `.env`, coloque o `#` no **começo** da linha:
+
+```dotenv
+# LLM_API_PATH=/chat/completions     (certo: a linha é ignorada)
+LLM_API_PATH=#/chat/completions      (errado: o # vira parte do valor)
+```
+
 Exemplo com Gemini:
 
 ```
@@ -159,6 +169,17 @@ LLM_TIMEOUT=120
 Modelos que raciocinam antes de responder gastam parte do limite de tokens nesse raciocínio. Se a resposta vier cortada, aumente `LLM_MAX_TOKENS` (por exemplo, para `2000`).
 
 Os testes simulados (mock) não exigem chave nem acesso à rede; só a execução real do programa exige o `.env` preenchido.
+
+## Erros de configuração
+
+| Mensagem (início) | Correção |
+|---|---|
+| `LLM_API_BASE_URL não foi definida` | Defina a base da API. |
+| `LLM_API_BASE_URL deve começar...` | Use `https://` (ou `http://` local). |
+| `LLM_MODEL_NAME não foi definido` | Defina o nome do modelo. |
+| `LLM_API_PATH contém '#'` | Comente a linha com `#` no início. |
+| `LLM_MAX_TOKENS deve ser um número` | Use um inteiro. |
+| `LLM_TIMEOUT deve ser maior que 0` | Use um valor positivo (segundos). |
 
 ## ▶️ Execução
 
