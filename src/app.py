@@ -1,6 +1,6 @@
 """Interface de linha de comando: captura a entrada e exibe a resposta."""
 
-from src.client import ErroConfiguracao, enviar_prompt_llm
+from src.client import ErroConfiguracao, ErroLLM, enviar_prompt_llm
 
 
 def executar_cli() -> None:
@@ -25,7 +25,9 @@ def executar_cli() -> None:
         except ErroConfiguracao as erro:
             print(f"Sistema > Erro de configuração: {erro}")
             print("Sistema > Corrija o arquivo .env e envie a mensagem de novo.\n")
-
+            continue
+        except ErroLLM as erro:
+            print(f"Sistema > Erro ao consultar o LLM: {erro}\n")
             continue
 
         print(f"IA > {resposta}\n")
