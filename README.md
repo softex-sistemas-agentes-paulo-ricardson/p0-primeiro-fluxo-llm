@@ -85,11 +85,31 @@ cd p0-primeiro-fluxo-llm
   source .venv/bin/activate
   ```
 
-  No Ubuntu/Debian, se aparecer "ensurepip is not available" ou "python3-venv is not installed", instale o módulo e repita os comandos:
+  São **dois comandos separados**: execute um por vez, cada um na sua linha. Colar os dois na mesma linha faz o `venv` falhar com `Unable to create directory '.../.venv/bin/activate'`. Para rodar os dois de uma vez, encadeie com `&&`:
+
+  ```bash
+  python3 -m venv .venv && source .venv/bin/activate
+  ```
+
+  No Ubuntu/Debian, se aparecer "ensurepip is not available" ou "python3-venv is not installed", instale o módulo **com `sudo`**:
 
   ```bash
   sudo apt update
   sudo apt install python3-venv
+  ```
+
+  A mensagem de erro do Ubuntu pode sugerir um pacote com a versão do Python, como `apt install python3.14-venv`. Copie o nome indicado na mensagem, mas **acrescente o `sudo`** (sem ele ocorre erro de permissão do `dpkg`):
+
+  ```bash
+  sudo apt install python3.14-venv
+  ```
+
+  Se a primeira tentativa falhou, a pasta `.venv` fica incompleta (sem `.venv/bin/activate`). Remova-a antes de recriar o ambiente:
+
+  ```bash
+  rm -rf .venv
+  python3 -m venv .venv
+  source .venv/bin/activate
   ```
 
 Verifique se o terminal exibe o prefixo `(.venv)` no início da linha de comando para confirmar que a ativação foi concluída com sucesso.
