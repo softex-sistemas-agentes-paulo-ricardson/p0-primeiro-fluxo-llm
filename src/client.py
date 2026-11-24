@@ -105,8 +105,26 @@ def enviar_prompt_llm(prompt: str) -> str:
         "max_tokens": config["max_tokens"],
     }
 
-    resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
-    resposta.raise_for_status()
+    try:
+        resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
+        resposta.raise_for_status()
+    except requests.exceptions.Timeout as erro:
+        raise ErroLLM(
+            f"O LLM não respondeu em {config['timeout']:g} segundos. "
+            "Tente de novo ou aumente LLM_TIMEOUT."
+        ) from erro
+    except requests.exceptions.SSLError as erro:
+        raise ErroLLM(
+            "Falha na verificação do certificado SSL do servidor. "
+            "Confira o endereço em LLM_API_BASE_URL."
+        ) from erro
+    except requests.exceptions.ConnectionError as erro:
+        raise ErroLLM(
+            "Não foi possível conectar ao servidor do LLM. "
+            "Verifique a internet e o LLM_API_BASE_URL."
+        ) from erro
+    except requests.exceptions.HTTPError as erro:
+        raise ErroLLM(mensagem_para_status(erro.response.status_code)) from erro
 
     dados = resposta.json()
     return dados["choices"][0]["message"]["content"]
