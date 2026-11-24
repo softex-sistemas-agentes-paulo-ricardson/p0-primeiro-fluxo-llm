@@ -36,7 +36,8 @@ p0-primeiro-fluxo-llm/
 │   └── client.py        # Cliente HTTP isolado (configuração e chamada à API do LLM)
 ├── tests/
 │   ├── test_client.py        # Testes offline do cliente HTTP, com mock da API
-│   └── test_configuracao.py  # Testes offline de leitura e validação da configuração
+│   ├── test_configuracao.py  # Testes offline de leitura e validação da configuração
+│   └── test_erros.py         # Testes offline do tratamento de erros da chamada
 ├── .env.example         # Modelo de configuração, sem credenciais reais
 ├── .gitignore           # Arquivos e pastas fora do controle de versão
 ├── requirements.txt     # Dependências do projeto
@@ -201,6 +202,23 @@ Os testes simulados (mock) não exigem chave nem acesso à rede; só a execuçã
 | `LLM_MAX_TOKENS deve ser um número` | Use um inteiro. |
 | `LLM_TIMEOUT deve ser maior que 0` | Use um valor positivo (segundos). |
 
+## Erros da chamada ao LLM
+
+Quando a chamada falha, a CLI mostra `Erro ao consultar o LLM: <mensagem>` e volta ao prompt, sem traceback. A mensagem nunca exibe a chave nem a URL completa.
+
+| Mensagem (início) | Correção |
+|---|---|
+| `A chave de API está ausente ou foi recusada (401)` | Confira `LLM_API_KEY`. |
+| `Acesso negado (403)` | Verifique as permissões da chave. |
+| `Modelo ou endereço não encontrado (404)` | Confira `LLM_MODEL_NAME`, `LLM_API_BASE_URL` e `LLM_API_PATH`. |
+| `Limite de requisições atingido (429)` | Aguarde um pouco e tente de novo. |
+| `O serviço do LLM está indisponível ou sobrecarregado (5xx)` | Tente de novo mais tarde. |
+| `O LLM não respondeu em N segundos` | Tente de novo ou aumente `LLM_TIMEOUT`. |
+| `Não foi possível conectar ao servidor do LLM` | Verifique a internet e `LLM_API_BASE_URL`. |
+| `Falha na verificação do certificado SSL` | Confira `LLM_API_BASE_URL`. |
+| `A resposta foi cortada porque o limite de tokens acabou` | Aumente `LLM_MAX_TOKENS`. |
+| `A resposta do LLM veio vazia` ou `em formato inesperado` | Tente de novo. |
+
 ## ▶️ Execução
 
 Com o ambiente virtual ativado, na raiz do projeto:
@@ -217,7 +235,7 @@ Digite a mensagem informal e pressione Enter. Para encerrar, digite `sair`.
 python -m pytest
 ```
 
-Os testes rodam offline, com `requests-mock`, e não gastam requisições da API.
+Os testes rodam offline, com `requests-mock`, e não gastam requisições da API. Os cenários de erro (credencial ausente ou inválida, timeout, falha de conexão, indisponibilidade e resposta vazia, cortada ou inesperada) são **simulados** em `tests/test_erros.py`. A execução normal do programa, com o `.env` preenchido, é a única parte **real**, feita contra o LLM.
 
 ## ⚠️ Limitações conhecidas
 

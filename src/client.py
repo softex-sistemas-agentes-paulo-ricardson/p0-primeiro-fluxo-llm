@@ -20,6 +20,8 @@ def ler_variavel(nome, padrao=None):
 class ErroConfiguracao(Exception):
     """A configuração do LLM está ausente ou é inválida."""
 
+class ErroLLM(Exception):
+    """A chamada ao LLM falhou ou a resposta não pôde ser usada."""
 
 def ler_numero(nome, tipo, padrao):
     """Lê uma variável numérica e a converte com `tipo` (int ou float)."""
@@ -69,6 +71,39 @@ def carregar_configuracao() -> dict:
     validar_configuracoes(config)
     return config
 
+MENSAGENS_HTTP = {
+    401: "A chave de API está ausente ou foi recusada (401). Confira LLM_API_KEY no .env.",
+    403: "Acesso negado (403). Verifique as permissões da sua chave.",
+    404: "Modelo ou endereço não encontrado (404). Confira LLM_MODEL_NAME, LLM_API_BASE_URL e LLM_API_PATH.",
+    429: "Limite de requisições atingido (429). Aguarde um pouco e tente de novo.",
+}
+
+def mensagem_para_status(status: int) -> str:
+    """Traduz um status HTTP de erro em uma mensagem para o usuário."""
+    if status in MENSAGENS_HTTP:
+        return MENSAGENS_HTTP[status]
+    if status >= 500:
+        return f"O serviço do LLM está indisponível ou sobrecarregado ({status}). Tente de novo mais tarde."
+    return f"O servidor recusou o pedido (status {status})."
+
+def extrair_texto(dados) -> str:
+    """Extrai o texto da resposta do LLM ou levanta ErroLLM se ela não servir."""
+    try:
+        escolha = dados["choices"][0]
+    except (KeyError, IndexError, TypeError):
+        raise ErroLLM("A resposta do LLM veio em um formato inesperado.") from None
+
+    if escolha.get("finish_reason") == "length":
+        raise ErroLLM(
+            "A resposta foi cortada porque o limite de tokens acabou. "
+            "Aumente LLM_MAX_TOKENS no .env."
+        )
+
+    texto = (escolha.get("message") or {}).get("content")
+    if not texto or not texto.strip():
+        raise ErroLLM("A resposta do LLM veio vazia. Tente de novo.")
+    return texto
+
 def enviar_prompt_llm(prompt: str) -> str:
     """Envia o prompt ao LLM e devolve o texto da resposta."""
 
@@ -88,8 +123,30 @@ def enviar_prompt_llm(prompt: str) -> str:
         "max_tokens": config["max_tokens"],
     }
 
-    resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
-    resposta.raise_for_status()
+    try:
+        resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
+        resposta.raise_for_status()
+    except requests.exceptions.Timeout as erro:
+        raise ErroLLM(
+            f"O LLM não respondeu em {config['timeout']:g} segundos. "
+            "Tente de novo ou aumente LLM_TIMEOUT."
+        ) from erro
+    except requests.exceptions.SSLError as erro:
+        raise ErroLLM(
+            "Falha na verificação do certificado SSL do servidor. "
+            "Confira o endereço em LLM_API_BASE_URL."
+        ) from erro
+    except requests.exceptions.ConnectionError as erro:
+        raise ErroLLM(
+            "Não foi possível conectar ao servidor do LLM. "
+            "Verifique a internet e o LLM_API_BASE_URL."
+        ) from erro
+    except requests.exceptions.HTTPError as erro:
+        raise ErroLLM(mensagem_para_status(erro.response.status_code)) from erro
 
-    dados = resposta.json()
-    return dados["choices"][0]["message"]["content"]
+    try:
+        dados = resposta.json()
+    except ValueError:
+        raise ErroLLM("A resposta do LLM não está em formato JSON.") from None
+
+    return extrair_texto(dados)
