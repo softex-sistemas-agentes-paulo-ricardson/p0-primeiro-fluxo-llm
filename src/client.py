@@ -86,6 +86,24 @@ def mensagem_para_status(status: int) -> str:
         return f"O serviço do LLM está indisponível ou sobrecarregado ({status}). Tente de novo mais tarde."
     return f"O servidor recusou o pedido (status {status})."
 
+def extrair_texto(dados) -> str:
+    """Extrai o texto da resposta do LLM ou levanta ErroLLM se ela não servir."""
+    try:
+        escolha = dados["choices"][0]
+    except (KeyError, IndexError, TypeError):
+        raise ErroLLM("A resposta do LLM veio em um formato inesperado.") from None
+
+    if escolha.get("finish_reason") == "length":
+        raise ErroLLM(
+            "A resposta foi cortada porque o limite de tokens acabou. "
+            "Aumente LLM_MAX_TOKENS no .env."
+        )
+
+    texto = (escolha.get("message") or {}).get("content")
+    if not texto or not texto.strip():
+        raise ErroLLM("A resposta do LLM veio vazia. Tente de novo.")
+    return texto
+
 def enviar_prompt_llm(prompt: str) -> str:
     """Envia o prompt ao LLM e devolve o texto da resposta."""
 
@@ -126,5 +144,9 @@ def enviar_prompt_llm(prompt: str) -> str:
     except requests.exceptions.HTTPError as erro:
         raise ErroLLM(mensagem_para_status(erro.response.status_code)) from erro
 
-    dados = resposta.json()
-    return dados["choices"][0]["message"]["content"]
+    try:
+        dados = resposta.json()
+    except ValueError:
+        raise ErroLLM("A resposta do LLM não está em formato JSON.") from None
+
+    return extrair_texto(dados)
