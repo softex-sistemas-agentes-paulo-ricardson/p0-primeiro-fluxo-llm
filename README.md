@@ -35,6 +35,7 @@ p0-primeiro-fluxo-llm/
 │   ├── app.py           # Interface de linha de comando (captura a entrada e exibe a resposta)
 │   └── client.py        # Cliente HTTP isolado (configuração e chamada à API do LLM)
 ├── tests/
+│   ├── test_app.py           # Testes offline da CLI (entrada vazia)
 │   ├── test_client.py        # Testes offline do cliente HTTP, com mock da API
 │   ├── test_configuracao.py  # Testes offline de leitura e validação da configuração
 │   └── test_erros.py         # Testes offline do tratamento de erros da chamada
@@ -202,6 +203,8 @@ Os testes simulados (mock) não exigem chave nem acesso à rede; só a execuçã
 | `LLM_MAX_TOKENS deve ser um número` | Use um inteiro. |
 | `LLM_TIMEOUT deve ser maior que 0` | Use um valor positivo (segundos). |
 
+Variável **obrigatória** vazia (`LLM_API_BASE_URL` ou `LLM_MODEL_NAME`) gera a mensagem de "não foi definida". Variável **opcional** vazia não é erro: o programa usa o valor padrão.
+
 ## Erros da chamada ao LLM
 
 Quando a chamada falha, a CLI mostra `Erro ao consultar o LLM: <mensagem>` e volta ao prompt, sem traceback. A mensagem nunca exibe a chave nem a URL completa.
@@ -235,7 +238,7 @@ Digite a mensagem informal e pressione Enter. Para encerrar, digite `sair`.
 python -m pytest
 ```
 
-Os testes rodam offline, com `requests-mock`, e não gastam requisições da API. Os cenários de erro (credencial ausente ou inválida, timeout, falha de conexão, indisponibilidade e resposta vazia, cortada ou inesperada) são **simulados** em `tests/test_erros.py`. A execução normal do programa, com o `.env` preenchido, é a única parte **real**, feita contra o LLM.
+Os testes rodam offline, com `requests-mock`, e não gastam requisições da API. Os cenários de erro (credencial ausente ou inválida, timeout, falha de conexão, indisponibilidade e resposta vazia, cortada ou inesperada) são **simulados** em `tests/test_erros.py`. A entrada vazia é testada em `tests/test_app.py`, também sem chamada real. A execução normal do programa, com o `.env` preenchido, é a única parte **real**, feita contra o LLM.
 
 ## ⚠️ Limitações conhecidas
 
