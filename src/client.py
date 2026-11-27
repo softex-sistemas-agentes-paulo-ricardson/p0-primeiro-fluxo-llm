@@ -129,17 +129,15 @@ def montar_corpo(config: dict, prompt: str) -> dict:
         "max_tokens": config["max_tokens"],
     }
 
-def enviar_prompt_llm(prompt: str) -> str:
-    """Envia o prompt ao LLM e devolve o texto da resposta."""
-
-    config = carregar_configuracao()
-
-    url = montar_url(config)
-    cabecalhos = montar_cabecalhos(config)
-    corpo = montar_corpo(config, prompt)
-
+def enviar_requisicao(config: dict, prompt: str) -> requests.Response:
+    """Faz o POST ao LLM e traduz falhas de rede e de status em ErroLLM."""
     try:
-        resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
+        resposta = requests.post(
+            montar_url(config),
+            headers=montar_cabecalhos(config),
+            json=montar_corpo(config, prompt),
+            timeout=config["timeout"],
+        )
         resposta.raise_for_status()
     except requests.exceptions.Timeout as erro:
         raise ErroLLM(
@@ -158,6 +156,12 @@ def enviar_prompt_llm(prompt: str) -> str:
         ) from erro
     except requests.exceptions.HTTPError as erro:
         raise ErroLLM(mensagem_para_status(erro.response.status_code)) from erro
+    return resposta
+
+def enviar_prompt_llm(prompt: str) -> str:
+    """Envia o prompt ao LLM e devolve o texto da resposta."""
+    config = carregar_configuracao()
+    resposta = enviar_requisicao(config, prompt)
 
     try:
         dados = resposta.json()
