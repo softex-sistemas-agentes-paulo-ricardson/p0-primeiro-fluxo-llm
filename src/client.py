@@ -104,16 +104,22 @@ def extrair_texto(dados) -> str:
         raise ErroLLM("A resposta do LLM veio vazia. Tente de novo.")
     return texto
 
-def enviar_prompt_llm(prompt: str) -> str:
-    """Envia o prompt ao LLM e devolve o texto da resposta."""
+def montar_url(config: dict) -> str:
+    """Junta a base da API e o caminho do endpoint."""
+    return config["base_url"].rstrip("/") + "/" + config["caminho"].lstrip("/")
 
-    config = carregar_configuracao()
 
-    url = config["base_url"].rstrip("/") + "/" + config["caminho"].lstrip("/")
+def montar_cabecalhos(config: dict) -> dict:
+    """Monta os cabeçalhos; sem chave, não envia Authorization."""
     cabecalhos = {}
     if config["api_key"]:
         cabecalhos["Authorization"] = f"Bearer {config['api_key']}"
-    corpo = {
+    return cabecalhos
+
+
+def montar_corpo(config: dict, prompt: str) -> dict:
+    """Monta o corpo do pedido no formato compatível com OpenAI."""
+    return {
         "model": config["modelo"],
         "messages": [
             {"role": "system", "content": INSTRUCAO_SISTEMA},
@@ -122,6 +128,15 @@ def enviar_prompt_llm(prompt: str) -> str:
         "temperature": config["temperatura"],
         "max_tokens": config["max_tokens"],
     }
+
+def enviar_prompt_llm(prompt: str) -> str:
+    """Envia o prompt ao LLM e devolve o texto da resposta."""
+
+    config = carregar_configuracao()
+
+    url = montar_url(config)
+    cabecalhos = montar_cabecalhos(config)
+    corpo = montar_corpo(config, prompt)
 
     try:
         resposta = requests.post(url, headers=cabecalhos, json=corpo, timeout=config["timeout"])
