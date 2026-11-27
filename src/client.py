@@ -1,9 +1,9 @@
 """Cliente HTTP isolado: concentra a lógica de chamada ao LLM."""
 
 import os
-from dotenv import find_dotenv, load_dotenv
 
 import requests
+from dotenv import find_dotenv, load_dotenv
 
 INSTRUCAO_SISTEMA = (
     "Você reescreve mensagens em tom formal e profissional, em português do Brasil. "
@@ -11,9 +11,17 @@ INSTRUCAO_SISTEMA = (
     "Responda apenas com o texto reescrito, sem comentários, aspas ou explicações."
 )
 
-def ler_variavel(nome, padrao=None):
-    """Le uma variável de ambiente; vazia ou só com espaços conta como ausente"""
 
+class ErroConfiguracao(Exception):
+    """A configuração do LLM está ausente ou é inválida."""
+
+
+class ErroLLM(Exception):
+    """A chamada ao LLM falhou ou a resposta não pôde ser usada."""
+
+
+def ler_variavel(nome, padrao=None):
+    """Lê uma variável de ambiente; vazia ou só com espaços conta como ausente."""
     valor = os.getenv(nome, "").strip()
     return valor or padrao
 
