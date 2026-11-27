@@ -25,11 +25,6 @@ def ler_variavel(nome, padrao=None):
     valor = os.getenv(nome, "").strip()
     return valor or padrao
 
-class ErroConfiguracao(Exception):
-    """A configuração do LLM está ausente ou é inválida."""
-
-class ErroLLM(Exception):
-    """A chamada ao LLM falhou ou a resposta não pôde ser usada."""
 
 def ler_numero(nome, tipo, padrao):
     """Lê uma variável numérica e a converte com `tipo` (int ou float)."""
@@ -42,6 +37,7 @@ def ler_numero(nome, tipo, padrao):
         raise ErroConfiguracao(
             f"{nome} deve ser um número ({tipo.__name__}), mas o valor é {texto!r}."
         ) from None
+
 
 def validar_configuracoes(config: dict) -> None:
     """Levanta ErroConfiguracao se um valor obrigatório faltar ou for inválido."""
@@ -63,6 +59,7 @@ def validar_configuracoes(config: dict) -> None:
     if config["timeout"] <= 0:
         raise ErroConfiguracao("LLM_TIMEOUT deve ser maior que zero.")
 
+
 def carregar_configuracao() -> dict:
     """Lê as variáveis do .env e devolve a configuração do LLM"""
     load_dotenv(find_dotenv(usecwd=True), override=True)
@@ -79,20 +76,29 @@ def carregar_configuracao() -> dict:
     validar_configuracoes(config)
     return config
 
+
 MENSAGENS_HTTP = {
     401: "A chave de API está ausente ou foi recusada (401). Confira LLM_API_KEY no .env.",
     403: "Acesso negado (403). Verifique as permissões da sua chave.",
-    404: "Modelo ou endereço não encontrado (404). Confira LLM_MODEL_NAME, LLM_API_BASE_URL e LLM_API_PATH.",
+    404: (
+        "Modelo ou endereço não encontrado (404). "
+        "Confira LLM_MODEL_NAME, LLM_API_BASE_URL e LLM_API_PATH."
+    ),
     429: "Limite de requisições atingido (429). Aguarde um pouco e tente de novo.",
 }
+
 
 def mensagem_para_status(status: int) -> str:
     """Traduz um status HTTP de erro em uma mensagem para o usuário."""
     if status in MENSAGENS_HTTP:
         return MENSAGENS_HTTP[status]
     if status >= 500:
-        return f"O serviço do LLM está indisponível ou sobrecarregado ({status}). Tente de novo mais tarde."
+        return (
+            f"O serviço do LLM está indisponível ou sobrecarregado ({status}). "
+            "Tente de novo mais tarde."
+        )
     return f"O servidor recusou o pedido (status {status})."
+
 
 def extrair_texto(dados) -> str:
     """Extrai o texto da resposta do LLM ou levanta ErroLLM se ela não servir."""
@@ -111,6 +117,7 @@ def extrair_texto(dados) -> str:
     if not texto or not texto.strip():
         raise ErroLLM("A resposta do LLM veio vazia. Tente de novo.")
     return texto
+
 
 def montar_url(config: dict) -> str:
     """Junta a base da API e o caminho do endpoint."""
@@ -136,6 +143,7 @@ def montar_corpo(config: dict, prompt: str) -> dict:
         "temperature": config["temperatura"],
         "max_tokens": config["max_tokens"],
     }
+
 
 def enviar_requisicao(config: dict, prompt: str) -> requests.Response:
     """Faz o POST ao LLM e traduz falhas de rede e de status em ErroLLM."""
@@ -165,6 +173,7 @@ def enviar_requisicao(config: dict, prompt: str) -> requests.Response:
     except requests.exceptions.HTTPError as erro:
         raise ErroLLM(mensagem_para_status(erro.response.status_code)) from erro
     return resposta
+
 
 def enviar_prompt_llm(prompt: str) -> str:
     """Envia o prompt ao LLM e devolve o texto da resposta."""
