@@ -72,6 +72,7 @@ def carregar_configuracao() -> dict:
         "temperatura": ler_numero("LLM_TEMPERATURE", float, 0.7),
         "max_tokens": ler_numero("LLM_MAX_TOKENS", int, 1000),
         "timeout": ler_numero("LLM_TIMEOUT", float, 30.0),
+        "instrucao": ler_variavel("LLM_INSTRUCAO", INSTRUCAO_SISTEMA),
     }
     validar_configuracoes(config)
     return config
@@ -137,7 +138,7 @@ def montar_corpo(config: dict, prompt: str) -> dict:
     return {
         "model": config["modelo"],
         "messages": [
-            {"role": "system", "content": INSTRUCAO_SISTEMA},
+            {"role": "system", "content": config["instrucao"]},
             {"role": "user", "content": prompt},
         ],
         "temperature": config["temperatura"],

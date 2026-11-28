@@ -157,6 +157,7 @@ O programa usa qualquer API compatível com OpenAI (`POST /chat/completions`, co
 | `LLM_TEMPERATURE` | Temperatura de geração (opcional; padrão `0.7`) |
 | `LLM_MAX_TOKENS` | Limite de tokens da resposta (opcional; padrão `1000`) |
 | `LLM_TIMEOUT` | Tempo máximo de espera, em segundos (opcional; padrão `30`) |
+| `LLM_INSTRUCAO` | Elemente opicional, caso queira dar outra instrução ao sistema. Por padrão (constante vazia) o sistema aplica o objetivo central do sistema |
 
 As variáveis marcadas como opcionais podem ficar vazias ou ser removidas: nesse caso, o programa usa o valor padrão.
 

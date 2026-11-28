@@ -15,6 +15,7 @@ CONFIG = {
     "temperatura": 0.7,
     "max_tokens": 100,
     "timeout": 30,
+    "instrucao": "instrucao-test",
 }
 
 
