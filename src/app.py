@@ -1,6 +1,7 @@
 """Interface de linha de comando: captura a entrada e exibe a resposta."""
 
 from src.client import ErroConfiguracao, ErroLLM, enviar_prompt_llm
+from src.registro import configurar_registro
 
 
 def exibir_cabecalho() -> None:
@@ -50,4 +51,5 @@ def executar_cli() -> None:
 
 
 if __name__ == "__main__":
+    configurar_registro()
     executar_cli()

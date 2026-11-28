@@ -1,9 +1,14 @@
 """Cliente HTTP isolado: concentra a lógica de chamada ao LLM."""
 
+import logging
 import os
+import time
 
 import requests
 from dotenv import find_dotenv, load_dotenv
+
+logger = logging.getLogger("p0")
+logger.addHandler(logging.NullHandler())
 
 INSTRUCAO_SISTEMA = (
     "Você reescreve mensagens em tom formal e profissional, em português do Brasil. "
@@ -179,11 +184,19 @@ def enviar_requisicao(config: dict, prompt: str) -> requests.Response:
 def enviar_prompt_llm(prompt: str) -> str:
     """Envia o prompt ao LLM e devolve o texto da resposta."""
     config = carregar_configuracao()
-    resposta = enviar_requisicao(config, prompt)
+    logger.info("Chamando o modelo %s", config["modelo"])
+    inicio = time.monotonic()
 
     try:
-        dados = resposta.json()
-    except ValueError:
-        raise ErroLLM("A resposta do LLM não está em formato JSON.") from None
+        resposta = enviar_requisicao(config, prompt)
+        try:
+            dados = resposta.json()
+        except ValueError:
+            raise ErroLLM("A resposta do LLM não está em formato JSON.") from None
+        texto = extrair_texto(dados)
+    except ErroLLM as erro:
+        logger.warning("Falha após %.1f s: %s", time.monotonic() - inicio, erro)
+        raise
 
-    return extrair_texto(dados)
+    logger.info("Resposta recebida em %.1f s", time.monotonic() - inicio)
+    return texto
