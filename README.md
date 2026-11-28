@@ -233,6 +233,10 @@ python -m src.app
 
 Digite a mensagem informal e pressione Enter. Para encerrar, digite `sair`.
 
+## 📝 Registros
+
+Cada execução é registrada em `logs/app.log`: horário, modelo, duração e falhas. A chave, a mensagem digitada e a resposta do modelo não são gravadas. A pasta `logs/` não é versionada.
+
 ## 🧪 Testes
 
 ```bash
